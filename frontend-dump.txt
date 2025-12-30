@@ -1,0 +1,951 @@
+DUMP DO FRONTEND (React / Vite)
+===============================
+
+----------------------------------------
+FILE: ./index.html
+----------------------------------------
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tauri + React + Typescript</title>
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
+
+----------------------------------------
+FILE: ./package.json
+----------------------------------------
+
+{
+  "name": "snapboard",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-autostart": "^2.5.1",
+    "@tauri-apps/plugin-global-shortcut": "^2.3.1",
+    "@tauri-apps/plugin-opener": "^2",
+    "framer-motion": "^12.23.26",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "zod": "^4.2.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.18",
+    "@tauri-apps/cli": "^2",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react": "^4.6.0",
+    "autoprefixer": "^10.4.23",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.18",
+    "typescript": "~5.8.3",
+    "vite": "^7.0.4"
+  }
+}
+
+
+----------------------------------------
+FILE: ./src/App.tsx
+----------------------------------------
+
+import { OverlayView } from "./components/overlay/overlayView";
+import { useClipboardItems } from "./hooks/useClipboardItems";
+import { ClipboardCardSkeleton } from "./components/clipboard/clipboardCardSkeleton";
+import { ClipboardCard } from "./components/clipboard/clipboardCard";
+
+
+export default function App() {
+  const { clipboard_history, current_clipboard_item } = useClipboardItems();
+
+  const isLoading = !current_clipboard_item && clipboard_history.length === 0;
+
+  return (
+    <OverlayView className="flex flex-col h-full w-full p-4 gap-3">
+      <div className="w-full h-[30px] bg-green-600 flex items-center justify-center rounded">
+      aqui será o header
+      </div>
+
+      <div className="flex flex-1 overflow-hidden">
+        <div className="w-[300px] pr-4 flex flex-col">
+          <span className="text-xs text-white/60 tracking-wide">
+            Current Clip:
+          </span>
+
+          {isLoading && <ClipboardCardSkeleton />}
+
+          {!isLoading && current_clipboard_item && (
+            <ClipboardCard item={current_clipboard_item} />
+          )}
+
+          {!isLoading && !current_clipboard_item && (
+            <div className="text-white/50 text-sm">
+              Nenhum item atual
+            </div>
+          )}
+        </div>
+
+        
+        <div className="w-px bg-white/15 mx-2" />
+
+        {/* RIGHT — history list */}
+        <div className="flex-1 pl-4 overflow-y-auto">
+          <span className="text-xs text-white/60 tracking-wide mb-3 block">
+            History
+          </span>
+
+          <div className="flex flex-col gap-3">
+            {isLoading &&
+              Array.from({ length: 4 }).map((_, i) => (
+                <ClipboardCardSkeleton key={i} />
+              ))}
+
+            {!isLoading && clipboard_history.length === 0 && (
+              <div className="text-white/50 text-sm">
+                Histórico vazio
+              </div>
+            )}
+
+            {!isLoading &&
+              clipboard_history.map((item) => (
+                <ClipboardCard key={item.id} item={item} />
+              ))}
+          </div>
+        </div>
+
+      </div>
+    </OverlayView>
+  );
+}
+
+
+----------------------------------------
+FILE: ./src/components/button/button.css
+----------------------------------------
+
+.apple-button {
+  appearance: none;
+  border: 1px solid rgba(0, 0, 0, 0.078);
+  border-radius: 5px;
+
+  padding: 3px 10px;
+
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.85),
+    rgba(225, 225, 225, 0.85)
+  );
+  backdrop-filter: blur(12px);
+
+
+  color: rgba(0, 0, 0, 0.85);
+
+  font-family: system-ui, -apple-system, BlinkMacSystemFont,
+    "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+
+  font-size: 12px;
+  font-weight: 200;
+  line-height: 1.2;
+
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.7) inset,
+    0 1px 2px rgba(0, 0, 0, 0.12);
+
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.05s ease,
+    opacity 0.15s ease;
+    
+}
+
+/* Hover */
+.apple-button:hover:not(:disabled) {
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.95),
+    rgba(230, 230, 230, 0.95)
+  );
+}
+
+/* Active (pressed) */
+.apple-button:active:not(:disabled) {
+  background: linear-gradient(
+    to bottom,
+    rgba(225, 225, 225, 0.95),
+    rgba(210, 210, 210, 0.95)
+  );
+
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.2) inset;
+
+  transform: translateY(1px);
+}
+
+/* Focus (keyboard) */
+.apple-button:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px rgba(0, 122, 255, 0.35),
+    0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+/* Disabled */
+.apple-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+
+
+
+----------------------------------------
+FILE: ./src/components/button/button.tsx
+----------------------------------------
+
+import "./button.css"
+interface ButtonProps {
+  onClick?: () => void;
+  disabled?: boolean;
+  children: React.ReactNode;
+  className?: string;
+}
+
+export default function Button({
+  onClick,
+  disabled = false,
+  children,
+  className = "",
+}: ButtonProps) {
+  return (
+    <button
+      className={`apple-button ${className}`}
+      onClick={onClick}
+      disabled={disabled}
+    >
+      {children}
+    </button>
+  );
+}
+
+
+----------------------------------------
+FILE: ./src/components/clipboard/ClipboardList.tsx
+----------------------------------------
+
+import { ClipboardItem } from "../../types/clipboardItem";
+import { ClipboardCard } from "./clipboardCard";
+import { ClipboardCardSkeleton } from "./clipboardCardSkeleton";
+
+type ClipboardListProps = {
+  items: ClipboardItem[];
+  loading: boolean;
+  activeId?: string;
+};
+
+export function ClipboardList({
+  items,
+  loading,
+  activeId,
+}: ClipboardListProps) {
+  if (loading) {
+    return (
+      <div className="flex gap-4">
+        <ClipboardCardSkeleton />
+        <ClipboardCardSkeleton />
+        <ClipboardCardSkeleton />
+      </div>
+    );
+  }
+
+  if (items.length === 0) {
+    return (
+      <div className="h-full flex items-center text-white/50 text-sm">
+        Clipboard vazio
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="
+        flex
+        gap-4
+        overflow-x-auto
+        pb-2
+        scrollbar-thin
+        scrollbar-thumb-white/20
+        scrollbar-track-transparent
+      "
+    >
+      {items.map((item) => (
+        <ClipboardCard
+          key={item.id}
+          item={item}
+        //   active={item.id === activeId}
+        />
+      ))}
+    </div>
+  );
+}
+
+
+----------------------------------------
+FILE: ./src/components/clipboard/clipboardCard.tsx
+----------------------------------------
+
+import { ClipboardItem } from "../../types/clipboardItem";
+import { formatDate } from "../../utlis/date";
+import { Icon } from "../../utlis/icons";
+
+
+type ClipboardCardProps = {
+  item: ClipboardItem;
+};
+
+export function ClipboardCard({ item }: ClipboardCardProps) {
+  return (
+    <div
+      className="
+        w-full
+        rounded-2xl
+        bg-white/15
+        backdrop-blur-md
+        px-4 py-3
+        flex flex-col
+        gap-3
+      "
+    >
+
+      <div className="flex gap-4 items-start">
+        
+        {/* Icon */}
+        <div className="shrink-0 w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
+          <Icon type={item.kind} className="text-white/80" />
+        </div>
+
+        {/* Text */}
+        <p className="text-white/90 text-sm leading-snug line-clamp-3">
+          {item.content}
+        </p>
+      </div>
+
+      {/* Footer */}
+      <div className="flex justify-between text-xs text-white/60">
+        <span>{formatDate(item.created_at)}</span>
+        <span>{item.content.length} characters</span>
+      </div>
+    </div>
+  );
+}
+
+
+
+
+----------------------------------------
+FILE: ./src/components/clipboard/clipboardCardSkeleton.tsx
+----------------------------------------
+
+export function ClipboardCardSkeleton() {
+  return (
+    <div
+      className="
+        w-full
+        rounded-2xl
+        px-4 py-3
+        flex flex-col
+        gap-3
+        bg-white/10
+        animate-pulse
+      "
+    >
+      <div className="flex gap-4">
+        <div className="w-12 h-12 rounded-xl bg-white/20" />
+
+        <div className="flex-1 space-y-2">
+          <div className="h-3 bg-white/20 rounded w-full" />
+          <div className="h-3 bg-white/20 rounded w-5/6" />
+          <div className="h-3 bg-white/20 rounded w-2/3" />
+        </div>
+      </div>
+
+      <div className="flex justify-between mt-1">
+        <div className="h-3 bg-white/20 rounded w-24" />
+        <div className="h-3 bg-white/20 rounded w-16" />
+      </div>
+    </div>
+  );
+}
+
+
+----------------------------------------
+FILE: ./src/components/overlay/overlay.module.css
+----------------------------------------
+
+.overlay-root {
+  width: 100%;
+  height: 100%;
+
+  background: linear-gradient(
+    to bottom,
+    rgba(30, 30, 30, 0.55),
+    rgba(20, 20, 20, 0.65)
+  );
+
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+
+  color: white;
+}
+
+
+----------------------------------------
+FILE: ./src/components/overlay/overlayView.tsx
+----------------------------------------
+
+import { motion, Variants, AnimatePresence } from "framer-motion";
+import { useOverlay } from "../../contexts/overlayContext";
+import { invoke } from "@tauri-apps/api/core";
+import styles from "./overlay.module.css";
+
+type OverlayViewProps = {
+  children: React.ReactNode;
+  className?: string;
+};
+const panelVariants: Variants = {
+  hidden: { y: 40, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      duration: 0.15,
+      ease: [0.15, 1, 0.36, 1] as const,
+    },
+  },
+  exit: {
+    y: 40,
+    opacity: 0,
+    transition: {
+      duration: 0.15,
+      ease: [0.4, 0, 1, 1] as const,
+    },
+  },
+};
+
+export function OverlayView({ children, className = "" }: OverlayViewProps) {
+  const { visible } = useOverlay();
+
+  return (
+    <AnimatePresence
+      mode="wait"
+      onExitComplete={() => {
+        invoke("finalize_overlay_close");
+      }}
+    >
+      {visible && (
+        <motion.div
+          key="overlay"
+          className={`${styles["overlay-root"]} ${className}`}
+          variants={panelVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+        >
+          {children}
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+
+----------------------------------------
+FILE: ./src/contexts/overlayContext.tsx
+----------------------------------------
+
+import { createContext, useContext, useEffect, useState } from "react";
+import { listen } from "@tauri-apps/api/event";
+import { registerOverlayKeyboard } from "../utlis/keyboard";
+
+type OverlayContextValue = {
+  visible: boolean;
+  requestClose: () => void;
+};
+
+const OverlayContext = createContext<OverlayContextValue | null>(null);
+
+export function OverlayProvider({ children }: { children: React.ReactNode }) {
+
+  registerOverlayKeyboard();
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const open = listen("overlay:open", () => setVisible(true));
+    const close = listen("overlay:close", () => setVisible(false));
+
+    return () => {
+      open.then((u) => u());
+      close.then((u) => u());
+    };
+  }, []);
+
+  const requestClose = () => {
+    setVisible(false);
+  };
+
+  return (
+    <OverlayContext.Provider value={{ visible, requestClose }}>
+      {children}
+    </OverlayContext.Provider>
+  );
+}
+
+
+export function useOverlay() {
+  const ctx = useContext(OverlayContext);
+  if (!ctx) {
+    throw new Error("useOverlay must be used inside OverlayProvider");
+  }
+  return ctx;
+}
+
+
+----------------------------------------
+FILE: ./src/hooks/useClipboardItems.ts
+----------------------------------------
+
+import { useEffect, useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
+import {
+  ClipboardItem,
+  ClipboardItemSchema,
+  ClipboardItemArraySchema,
+} from "../types/clipboardItem";
+
+export function useClipboardItems() {
+  const [clipboard_history, setClipboardHistory] = useState<ClipboardItem[]>([]);
+  const [current_clipboard_item, setCurrentClipboardItem] =
+    useState<ClipboardItem | null>(null);
+
+  const deleteItem = async (id: string) => {
+    await invoke("delete_item", { id });
+    setClipboardHistory((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const selectItemToClipboard = async (id: string) => {
+    await invoke("select_item_to_clipboard", { id });
+    return clipboard_history.find((item) => item.id === id) ?? null;
+  };
+
+  const reLoadItems = async () => {
+    const data = await invoke("list_items");
+    const parsed = ClipboardItemArraySchema.parse(data);
+    setClipboardHistory(parsed);
+  };
+
+  const deleteAllItems = async () => {
+    await invoke("clear_all");
+    setClipboardHistory([]);
+  };
+
+  const stopApplication = async () => {
+    await invoke("stop_app");
+  };
+
+  
+  useEffect(() => {
+    invoke("list_clipboard_history").then((data) => {
+      console.log("Data from list_clipboard_history:", data);
+      const parsed = ClipboardItemArraySchema.parse(data);
+      setClipboardHistory(parsed);
+    });
+
+    invoke("get_current_clipboard_item").then((data) => {
+      const parsed = ClipboardItemSchema.parse(data);
+      setCurrentClipboardItem(parsed);
+    });
+  }, []);
+
+  
+  useEffect(() => {
+    const unlisten = listen("clipboard:new", (e) => {
+      const parsed = ClipboardItemSchema.safeParse(e.payload);
+      if (!parsed.success) return;
+
+      setClipboardHistory((prev) => {
+        if (prev.some((i) => i.id === parsed.data.id)) return prev;
+        return [parsed.data, ...prev];
+      });
+
+      setCurrentClipboardItem(parsed.data);
+    });
+
+    return () => {
+      unlisten.then((u) => u());
+    };
+  }, []);
+
+  return {
+    clipboard_history,
+    current_clipboard_item,
+    deleteItem,
+    deleteAllItems,
+    reLoadItems,
+    selectItemToClipboard,
+    stopApplication,
+  };
+}
+
+
+----------------------------------------
+FILE: ./src/hooks/useHotkeys.ts
+----------------------------------------
+
+import { useEffect, useRef } from "react";
+
+export type Hotkey = {
+  keys: string[];
+  label?: string;
+  callback: (event: KeyboardEvent) => void;
+  when?: () => boolean;
+  preventDefault?: boolean;
+};
+
+export function useHotkeys(hotkeys: Hotkey[]) {
+  const hotkeysRef = useRef(hotkeys);
+
+  useEffect(() => {
+    hotkeysRef.current = hotkeys;
+  }, [hotkeys]);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+
+      if (
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+
+      for (const hk of hotkeysRef.current) {
+        if (!hk.keys.includes(e.key)) continue;
+        if (hk.when && !hk.when()) continue;
+
+        if (hk.preventDefault !== false) {
+          e.preventDefault();
+        }
+
+        hk.callback(e);
+        break;
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+}
+
+
+----------------------------------------
+FILE: ./src/main.tsx
+----------------------------------------
+
+import ReactDOM from "react-dom/client";
+import App from "./App";
+import React from "react";
+import { OverlayProvider } from "./contexts/overlayContext";
+import "./styles/App.css";
+import "./styles/tailwind.css";
+
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <OverlayProvider>
+      <App />
+    </OverlayProvider>
+  </React.StrictMode>
+);
+
+----------------------------------------
+FILE: ./src/styles/App.css
+----------------------------------------
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  font-size: 12px;
+}
+
+----------------------------------------
+FILE: ./src/styles/tailwind.css
+----------------------------------------
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+----------------------------------------
+FILE: ./src/types/clipboardItem.ts
+----------------------------------------
+
+import { z } from "zod";
+
+export const ClipboardItemSchema = z.object({
+  id: z.string(),
+  kind: z.enum(["text", "image", "code", "file", "link"]),
+  content: z.string(),
+  filepath: z.string().optional(),
+  created_at: z.number(), 
+  expires_at: z.number().optional(),
+});
+
+
+export type ClipboardItem = z.infer<typeof ClipboardItemSchema>;
+export const ClipboardItemArraySchema = z.array(ClipboardItemSchema);
+
+----------------------------------------
+FILE: ./src/utlis/date.ts
+----------------------------------------
+
+function formatDate(timestamp: number) {
+  return new Date(timestamp).toLocaleString(undefined, {
+    weekday: "short",
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+export { formatDate };
+
+----------------------------------------
+FILE: ./src/utlis/icons.tsx
+----------------------------------------
+
+import { JSX } from "react";
+
+export type IconType =
+  | "text"
+  | "image"
+  | "file"
+  | "code"
+  | "link";
+
+type IconProps = {
+  type: IconType;
+  size?: number;
+  className?: string;
+};
+
+export function Icon({
+  type,
+  size = 24,
+  className = "",
+}: IconProps): JSX.Element {
+  return (
+    <svg
+      width={size}
+      height={size}
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {renderPath(type)}
+    </svg>
+  );
+}
+
+function renderPath(type: IconType): JSX.Element {
+  switch (type) {
+    case "text":
+      return (
+        <>
+          <path d="M4 6h16" />
+          <path d="M4 12h10" />
+          <path d="M4 18h8" />
+        </>
+      );
+
+    case "image":
+      return (
+        <>
+          <rect x="3" y="4" width="18" height="16" rx="2" />
+          <circle cx="8.5" cy="9.5" r="1.5" />
+          <path d="M21 15l-5-5L5 21" />
+        </>
+      );
+
+    case "file":
+      return (
+        <>
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+          <path d="M14 2v6h6" />
+        </>
+      );
+
+    case "code":
+      return (
+        <>
+          <path d="M8 9l-4 3 4 3" />
+          <path d="M16 9l4 3-4 3" />
+        </>
+      );
+
+    case "link":
+      return (
+        <>
+          <path d="M10 13a5 5 0 0 0 7.07 0l1.83-1.83a5 5 0 0 0-7.07-7.07L10 5" />
+          <path d="M14 11a5 5 0 0 0-7.07 0L5.1 12.83a5 5 0 0 0 7.07 7.07L14 19" />
+        </>
+      );
+  }
+}
+
+
+----------------------------------------
+FILE: ./src/utlis/keyboard.ts
+----------------------------------------
+
+import { emit } from "@tauri-apps/api/event";
+
+export function registerOverlayKeyboard() {
+  const onKey = (e: KeyboardEvent) => {
+    if (e.key === "Escape") {
+      emit("overlay:close");
+    }
+  };
+
+  window.addEventListener("keydown", onKey);
+
+  return () => {
+    window.removeEventListener("keydown", onKey);
+  };
+}
+
+
+----------------------------------------
+FILE: ./src/vite-env.d.ts
+----------------------------------------
+
+/// <reference types="vite/client" />
+
+
+----------------------------------------
+FILE: ./tsconfig.json
+----------------------------------------
+
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}
+
+
+----------------------------------------
+FILE: ./tsconfig.node.json
+----------------------------------------
+
+{
+  "compilerOptions": {
+    "composite": true,
+    "skipLibCheck": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true
+  },
+  "include": ["vite.config.ts"]
+}
+
+
+----------------------------------------
+FILE: ./vite.config.ts
+----------------------------------------
+
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+
+// @ts-expect-error process is a nodejs global
+const host = process.env.TAURI_DEV_HOST;
+
+// https://vite.dev/config/
+export default defineConfig(async () => ({
+  plugins: [react()],
+
+  // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
+  //
+  // 1. prevent Vite from obscuring rust errors
+  clearScreen: false,
+  // 2. tauri expects a fixed port, fail if that port is not available
+  server: {
+    port: 1420,
+    strictPort: true,
+    host: host || false,
+    hmr: host
+      ? {
+          protocol: "ws",
+          host,
+          port: 1421,
+        }
+      : undefined,
+    watch: {
+      // 3. tell Vite to ignore watching `src-tauri`
+      ignored: ["**/src-tauri/**"],
+    },
+  },
+}));
+
+

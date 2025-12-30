@@ -1,0 +1,17 @@
+.overlay-root {
+  width: 98%;
+  height: 95%;
+  color: white;
+  transform: translateZ(0);
+
+  background: rgb(245, 245, 255);
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  border-radius: 17px;
+  will-change: transform, opacity;
+  margin: 0;
+
+  border: 0.5px solid rgba(151, 151, 151, 0.6);
+}
