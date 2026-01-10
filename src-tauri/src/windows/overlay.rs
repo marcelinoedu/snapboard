@@ -43,9 +43,9 @@ pub fn apply_layout(
     let monitor_pos = monitor.position();
     let monitor_size = monitor.size();
 
-    const OVERLAY_HEIGHT: u32 = 550;
+    const OVERLAY_HEIGHT: u32 = 720;
     const SIDE_INSET: u32 = 0;
-    const BOTTOM_INSET: u32 = 100;
+    const BOTTOM_INSET: u32 = 0;
 
     let width = monitor_size.width.saturating_sub(SIDE_INSET * 2);
 
@@ -82,7 +82,7 @@ pub fn attach_focus_listener(
             WindowEvent::Focused(false) => {
                 let app = app.clone();
 
-                // 🔥 Debounce para evitar glitch do WebView
+
                 thread::spawn(move || {
                     thread::sleep(Duration::from_millis(80));
 

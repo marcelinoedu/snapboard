@@ -48,9 +48,6 @@ export function useClipboardItems() {
     return clipboard_history.filter((item) => activeKinds.includes(item.kind));
   }, [clipboard_history, activeKinds]);
 
-  /* ────────────────────────────────
-   * Toggle de filtro
-   * ──────────────────────────────── */
   const toggleKindFilter = (kind: string) => {
     setActiveKinds((prev) =>
       prev.includes(kind) ? prev.filter((k) => k !== kind) : [...prev, kind]

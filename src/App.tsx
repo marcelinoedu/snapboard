@@ -6,7 +6,6 @@ import { useClipboardNavigation } from "./hooks/useClipboardNavigation";
 import { useEffect } from "react";
 import { emit } from "@tauri-apps/api/event";
 import { KindFilter } from "./components/kind-types/kind-filter";
-import { div } from "framer-motion/client";
 
 export default function App() {
   const {
@@ -24,10 +23,10 @@ export default function App() {
     navMessage,
     itemToSelect,
     itemToDelete,
-    itemToPreview,
+    // itemToPreview,
     clearItemToSelect,
     clearItemToDelete,
-    clearItemToPreview,
+    // clearItemToPreview,
     setSelectedIndex,
   } = useClipboardNavigation(clipboard_history);
 
@@ -52,14 +51,14 @@ export default function App() {
   const isLoading = !current_clipboard_item && clipboard_history.length === 0;
 
   return (
-    <OverlayView className="flex flex-col h-full w-full p-4 gap-3">
-      <div className="w-full h-[30px] flex items-center justify-center">
+    <OverlayView className="flex flex-col h-full w-full gap-3">
+      <div className="w-full h-[50px] flex items-center justify-center bg-[#3c3d43] rounded-t-[17px]">
         <KindFilter onToggle={toggleKindFilter} activeKinds={activeKinds} />
       </div>
 
       <div className="flex flex-1 overflow-hidden gap-8 px-4">
         <div className="w-fit flex flex-col gap-4">
-          <span className="font-medium text-s text-gray-800 tracking-wide">
+          <span className="font-medium text-s text-white tracking-wide">
             Current Clip:
           </span>
 
@@ -74,9 +73,9 @@ export default function App() {
 
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="flex items-center justify-between px-1">
-            <span className="font-medium text-s text-gray-800 tracking-wide">
+            <span className="font-medium text-s text-white tracking-wide">
               History Clip:{" "}
-              <span className="font-light text-s text-gray-500 italic pr-10">
+              <span className="font-light text-s text-white/60 italic pr-10">
                 {clipboard_history.length}/200 items
               </span>
             </span>
@@ -98,7 +97,7 @@ export default function App() {
                 )) :
 
                 <div>
-                  <span className="font-light text-sm text-gray-500 italic">
+                  <span className="font-light text-sm text-white/60 italic">
                     No clipboard history. Start copying items or remove the filters to see them here.
                   </span>
                 </div>
@@ -111,19 +110,14 @@ export default function App() {
                 <span>Copy</span>
               </div>
 
-              {navMessage ? (
-                <div className="flex items-center gap-2 text-gray-500">
-                  <kbd className="kbd">␣</kbd>
-                  <span>Preview</span>
-                </div>
-              ) : (
+              {!navMessage &&
                 <div className="flex items-center gap-2 text-gray-500">
                   <span>Use</span>
                   <kbd className="kbd">←</kbd>
                   <kbd className="kbd">→</kbd>
                   <span>to navigate</span>
                 </div>
-              )}
+              }
 
               <div className="flex items-center gap-2">
                 <kbd className="kbd">⌫</kbd>

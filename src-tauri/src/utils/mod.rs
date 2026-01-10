@@ -21,6 +21,10 @@ pub fn now_ts() -> i64 {
 pub fn classify_clipboard(content: &str) -> ClipboardKind {
     let trimmed = content.trim();
 
+    if is_location(trimmed) {
+        return ClipboardKind::location;
+    }
+
     if is_url(trimmed) {
         return ClipboardKind::link;
     }
@@ -31,6 +35,62 @@ pub fn classify_clipboard(content: &str) -> ClipboardKind {
 
     ClipboardKind::text
 }
+
+fn is_location(text: &str) -> bool {
+    let text = text.trim();
+
+    if text.is_empty() {
+        return false;
+    }
+
+
+    let map_url_patterns = [
+        r"https?://(www\.)?google\.[^/]+/maps",
+        r"https?://maps\.google\.[^/]+",
+        r"https?://(www\.)?openstreetmap\.org",
+        r"https?://maps\.apple\.com",
+        r"https?://(www\.)?waze\.com",
+    ];
+
+    let map_url_re = Regex::new(&map_url_patterns.join("|")).unwrap();
+    if map_url_re.is_match(text) {
+        return true;
+    }
+
+    if text.starts_with("geo:") || text.starts_with("maps://") {
+        return true;
+    }
+
+
+    let lat_lng_re = Regex::new(
+        r"(-?\d{1,3}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)"
+    ).unwrap();
+
+    if lat_lng_re.is_match(text) {
+        return true;
+    }
+
+  
+    let named_coords_re = Regex::new(
+        r"(lat|latitude)\s*[:=]\s*-?\d+(\.\d+)?\s*(,|\s)\s*(lon|lng|longitude)\s*[:=]\s*-?\d+(\.\d+)?"
+    ).unwrap();
+
+    if named_coords_re.is_match(text) {
+        return true;
+    }
+
+
+    let plus_code_re = Regex::new(
+        r"\b[A-Z0-9]{4,}\+[A-Z0-9]{2,}\b"
+    ).unwrap();
+
+    if plus_code_re.is_match(text) {
+        return true;
+    }
+
+    false
+}
+
 
 fn is_url(text: &str) -> bool {
     let url_re = Regex::new(
@@ -48,9 +108,6 @@ pub fn is_code(text: &str) -> bool {
 
     let mut score = 0;
 
-    // ----------------------------
-    // 1. Regex fortes (linguagens)
-    // ----------------------------
     let strong_patterns = [
         // C / C++
         r"#include\s*<[^>]+>",

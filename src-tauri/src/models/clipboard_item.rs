@@ -7,9 +7,10 @@ pub enum ClipboardKind {
     code,
     image,
     file,
+    location,
 }
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, Debug)]
 pub struct ClipboardItem {
     pub id: String,
     pub kind: ClipboardKind,

@@ -11,7 +11,7 @@ type IconProps = {
 
 export function Icon({
   type,
-  size = 20,
+  size = 14,
   className = "",
 }: IconProps): JSX.Element {
   const containerSize = size + 16;

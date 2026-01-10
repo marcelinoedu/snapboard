@@ -1,5 +1,5 @@
 function formatDate(timestamp: number) {
-  return new Date(timestamp).toLocaleString(undefined, {
+  return new Date(timestamp * 1000).toLocaleString(undefined, {
     weekday: "short",
     day: "2-digit",
     month: "short",

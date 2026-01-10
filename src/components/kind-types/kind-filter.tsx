@@ -29,8 +29,7 @@ export function KindFilter({
 
               ${
                 selected
-                  ? "bg-gray-200 text-gray-900 ring-1 ring-gray-300"
-                  : "text-gray-600 hover:bg-gray-100"
+                  && "bg-[rgb(27,28,36)] text-white ring-1 ring-gray-600"
               }
             `}
           >

@@ -21,7 +21,6 @@ pub fn init_app(app: &mut tauri::App) -> tauri::Result<()> {
 
     
     create_overlay(&app.handle())?;
-
     
     init_hotkeys(app)?;
     init_tray(app)?;
